@@ -3,6 +3,7 @@ from PIL import Image
 import cv2
 from pathlib import Path
 import numpy as np
+import re, json
 
 DATA_ROOT=Path("C:/medical_data")
 image_path= DATA_ROOT/ "cbc_report_001.png"
@@ -33,4 +34,32 @@ text=pytesseract.image_to_string(preprocessed)
 
 print(text)
 
+def extract_test_results(ocr_text):
+    """
+    Extract test name, value, and unit from OCR text
+    This is a simple pattern-matching approach to start
+    """
+    results=[]
+
+    # Pattern to match lines like: "Hemoglobin    12.1    gm/dl    13.0-17.0"
+    # This is a simplified pattern - we'll need to refine it
+    pattern=r'([A-Za-z\s\(\)]+)\s+([\d\.]+)\s+([\w/]+)\s+([\d\.\-]+)'
+    matches=re.findall(pattern, ocr_text)
+    #print("matches:",matches)
+
+    for match in matches:
+        test_name=match[0].strip()
+        value=float(match[1])
+        unit=match[2].strip()
+        ref_range=match[3].strip()
+
+        results.append({"test_name": test_name,
+            "value": value,
+            "unit": unit,
+            "reference_range": ref_range})
+
+        return results
+
+extracted_data=extract_test_results(text)
+print(json.dumps(extracted_data,indent=2))
 
