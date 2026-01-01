@@ -14,10 +14,10 @@ OCR_OUTPUT_DIR.mkdir(exist_ok=True)
 images = list(DATA_ROOT.glob("*.png")) + list(DATA_ROOT.glob("*.jpg"))
 
 if not images:
-    print("❌ No image files found in medical_data folder.")
+    print("No image files found in medical_data folder.")
     exit()
 
-print(f"📄 Found {len(images)} images. Starting OCR...\n")
+print(f"Found {len(images)} images. Starting OCR...\n")
 
 
 # OCR PROCESSING: for all images in png format
