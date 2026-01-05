@@ -6,7 +6,7 @@ import numpy as np
 import re, json
 
 DATA_ROOT=Path("C:/medical_data")
-image_path= DATA_ROOT/ "cbc_report_001.png"
+image_path= DATA_ROOT/ "coagulation_001.png"
 
 image=Image.open(image_path)
 #image.show()
@@ -34,32 +34,175 @@ text=pytesseract.image_to_string(preprocessed)
 
 print(text)
 
-def extract_test_results(ocr_text):
+
+def normalize_test_name(name):
     """
-    Extract test name, value, and unit from OCR text
-    This is a simple pattern-matching approach to start
+    Normalize test names for comparison by removing special characters,
+    converting to lowercase, and removing common words
     """
-    results=[]
+    name = name.lower()
+    name = re.sub(r'[^\w\s]', '', name)  # Remove punctuation
+    name = re.sub(r'\s+', ' ', name)     # Normalize whitespace
+    return name.strip()
 
-    # Pattern to match lines like: "Hemoglobin    12.1    gm/dl    13.0-17.0"
-    # This is a simplified pattern - we'll need to refine it
-    pattern=r'([A-Za-z\s\(\)]+)\s+([\d\.]+)\s+([\w/]+)\s+([\d\.\-]+)'
-    matches=re.findall(pattern, ocr_text)
-    #print("matches:",matches)
+# print("extracted_data:",extracted_data)
+# print(json.dumps(extracted_data,indent=2))
+def extract_candidate_rows(ocr_text):
+    rows = []
+    for line in ocr_text.split("\n"):
+        line = line.strip()
+        if len(line) < 5:
+            continue
+        if re.search(r"\d", line):  # must contain a number
+            rows.append(line)
+    return rows
 
-    for match in matches:
-        test_name=match[0].strip()
-        value=float(match[1])
-        unit=match[2].strip()
-        ref_range=match[3].strip()
+ROW_REGEX = re.compile(
+    r"""
+    (?P<name>[A-Za-z][A-Za-z\s\.\(\)/\-]+?)   # test name
+    \s+
+    (?P<value>\d+(\.\d+)?)                   # value
+    \s*
+    (?P<unit>[a-zA-Z/%µ]+)?                  # unit
+    \s*
+    (?P<range>\d+(\.\d+)?\s*[-–]\s*\d+(\.\d+)?)?
+    """,
+    re.VERBOSE
+)
 
-        results.append({"test_name": test_name,
-            "value": value,
-            "unit": unit,
-            "reference_range": ref_range})
+def parse_candidate_rows(rows):
+    parsed = []
+    for line in rows:
+        m = ROW_REGEX.search(line)
+        if not m:
+            continue
+        parsed.append({
+            "raw_name": m.group("name").strip(),
+            "value": float(m.group("value")),
+            "unit": m.group("unit"),
+            "reference_range": m.group("range"),
+            "raw_line": line
+        })
+    return parsed
 
-        return results
+from collections import defaultdict
+def build_test_ontology(annotation_files):
+    ontology = defaultdict(set)
 
-extracted_data=extract_test_results(text)
-print(json.dumps(extracted_data,indent=2))
+    for file in annotation_files:
+        with open(file) as f:
+            data = json.load(f)
 
+        # SAFETY CHECK
+        if "test_results" not in data:
+            continue
+
+        for test in data["test_results"]:
+            # SAFETY CHECK
+            if "test_name" not in test:
+                continue
+
+            norm = normalize_test_name(test["test_name"])
+            ontology[norm].add(test["test_name"])
+
+    return ontology
+
+
+from difflib import SequenceMatcher
+
+def similarity(a, b):
+    return SequenceMatcher(None, a, b).ratio()
+
+def normalize_extracted_rows(parsed_rows, ontology, threshold=0.75):
+    normalized = []
+
+    for row in parsed_rows:
+        raw_norm = normalize_test_name(row["raw_name"])
+        best_match = None
+        best_score = 0
+
+        for standard in ontology.keys():
+            score = similarity(raw_norm, standard)
+            if score > best_score:
+                best_score = score
+                best_match = standard
+
+        normalized.append({
+            "test_name": best_match if best_score >= threshold else row["raw_name"],
+            "value": row["value"],
+            "unit": row["unit"],
+            "reference_range": row["reference_range"],
+            "confidence": round(best_score, 2),
+            "raw_line": row["raw_line"]
+        })
+
+    return normalized
+
+
+
+candidate_rows = extract_candidate_rows(text)
+parsed_rows = parse_candidate_rows(candidate_rows)
+
+# build ontology from ALL annotation files
+annotation_files = list(DATA_ROOT.glob("*.json"))
+ontology = build_test_ontology(annotation_files)
+
+extracted_data = normalize_extracted_rows(parsed_rows, ontology)
+
+def calculate_accuracy(extracted_data, ground_truth_json):
+    """
+    Compare with fuzzy matching since OCR won't be perfect
+    """
+    # Build a lookup dictionary with normalized names
+    gt_tests = {}
+    for test in ground_truth_json['test_results']:
+        normalized_name = normalize_test_name(test['test_name'])
+        gt_tests[normalized_name] = test
+    
+    correct_names = 0
+    correct_values = 0
+    total = len(ground_truth_json['test_results'])
+    
+    matched_tests = []
+    unmatched_tests = []
+    
+    for extracted in extracted_data:
+        test_name = normalize_test_name(extracted['test_name'])
+        
+        # Try exact match first
+        if test_name in gt_tests:
+            correct_names += 1
+            matched_tests.append(extracted['test_name'])
+            
+            gt_value = gt_tests[test_name]['value']
+            if abs(extracted['value'] - gt_value) < 0.01:
+                correct_values += 1
+        else:
+            # Try partial matching (if normalized name is substring of ground truth)
+            found = False
+            for gt_name in gt_tests.keys():
+                if test_name in gt_name or gt_name in test_name:
+                    correct_names += 1
+                    matched_tests.append(f"{extracted['test_name']} -> {gt_tests[gt_name]['test_name']}")
+                    
+                    gt_value = gt_tests[gt_name]['value']
+                    if abs(extracted['value'] - gt_value) < 0.01:
+                        correct_values += 1
+                    found = True
+                    break
+            
+            if not found:
+                unmatched_tests.append(extracted['test_name'])
+    
+    print(f"\nTest Name Accuracy: {correct_names}/{total} = {correct_names/total*100:.1f}%")
+    print(f"Value Accuracy: {correct_values}/{total} = {correct_values/total*100:.1f}%")
+    print(f"\nMatched tests: {matched_tests}")
+    print(f"Unmatched tests: {unmatched_tests}")
+    
+    return correct_names/total, correct_values/total
+
+ground_truth_json_path=DATA_ROOT/ "coagulation_001_annotations.json"
+with open(ground_truth_json_path, 'r') as f:
+    ground_truth_json = json.load(f)
+accuracy=calculate_accuracy(extracted_data,ground_truth_json)
+print("accuracy:",accuracy)
