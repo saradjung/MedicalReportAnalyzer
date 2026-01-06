@@ -206,3 +206,23 @@ with open(ground_truth_json_path, 'r') as f:
     ground_truth_json = json.load(f)
 accuracy=calculate_accuracy(extracted_data,ground_truth_json)
 print("accuracy:",accuracy)
+
+def export_report_json(report_id, extracted_data, output_dir="outputs"):
+    output = {
+        "report_id": report_id,
+        "tests": extracted_data
+    }
+    
+    Path(output_dir).mkdir(exist_ok=True)
+    out_path = Path(output_dir) / f"{report_id}_extracted.json"
+    
+    with open(out_path, "w") as f:
+        json.dump(output, f, indent=2)
+    
+    print(f"Saved structured report to {out_path}")
+
+export_report_json(
+    report_id="coagulation_001",
+    extracted_data=extracted_data
+)
+

@@ -1,0 +1,85 @@
+{
+  "report_id": "coagulation_001",
+  "tests": [
+    {
+      "test_name": "EE",
+      "value": 19.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 0.44,
+      "raw_line": "Sample No \u00a3 AGILO30488A Collec. Date : EE 19:22"
+    },
+    {
+      "test_name": "esr",
+      "value": 0.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 0.8,
+      "raw_line": "Ack. Date : ER 00:43 Report Date : EB 03:33"
+    },
+    {
+      "test_name": "prothrombin time pt",
+      "value": 123.0,
+      "unit": "Seconds",
+      "reference_range": "10.8 - 13",
+      "confidence": 0.91,
+      "raw_line": "PROTHROMBIN TIME 123 Seconds 10.8 - 13,3"
+    },
+    {
+      "test_name": "mean normal prothrombin time",
+      "value": 12.2,
+      "unit": "Seconds",
+      "reference_range": null,
+      "confidence": 1.0,
+      "raw_line": "MEAN NORMAL PROTHROMBIN TIME 12.2 Seconds"
+    },
+    {
+      "test_name": "INR",
+      "value": 1.02,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 0.4,
+      "raw_line": "INR 1.02 - Normal <1.3"
+    },
+    {
+      "test_name": "Therapeutic Range",
+      "value": 2.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 0.44,
+      "raw_line": "Therapeutic Range 2.0-3.5"
+    },
+    {
+      "test_name": "Recommended Therapeutic range for Oral Anticoagulant therapy INR",
+      "value": 2.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 0.36,
+      "raw_line": "Recommended Therapeutic range for Oral Anticoagulant therapy INR 2.0-3.5:Treatment of Venous thrombosis &"
+    },
+    {
+      "test_name": "Note.",
+      "value": 1.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 0.62,
+      "raw_line": "Note. 1. Results should be clinically correlated"
+    },
+    {
+      "test_name": "BBB",
+      "value": 17.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 0.33,
+      "raw_line": "Print DateTime: (BBB 17-33-54 Print By: KOMATIREDDY SRINIV |"
+    },
+    {
+      "test_name": "Telangana -",
+      "value": 500032.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 0.38,
+      "raw_line": "O Mindspace Road, Gachibomli, Hyderabad, Telangana - 500032 @ +9) EE \u00a9 infomaighospitak.com Oy"
+    }
+  ]
+}
