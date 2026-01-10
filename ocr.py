@@ -6,7 +6,7 @@ import numpy as np
 import re, json
 
 DATA_ROOT=Path("C:/medical_data")
-image_path= DATA_ROOT/ "coagulation_001.png"
+image_path= DATA_ROOT/ "coagulation_002.png"
 
 image=Image.open(image_path)
 #image.show()
@@ -201,7 +201,7 @@ def calculate_accuracy(extracted_data, ground_truth_json):
     
     return correct_names/total, correct_values/total
 
-ground_truth_json_path=DATA_ROOT/ "coagulation_001_annotations.json"
+ground_truth_json_path=DATA_ROOT/ "coagulation_002_annotations.json"
 with open(ground_truth_json_path, 'r') as f:
     ground_truth_json = json.load(f)
 accuracy=calculate_accuracy(extracted_data,ground_truth_json)
@@ -222,7 +222,7 @@ def export_report_json(report_id, extracted_data, output_dir="outputs"):
     print(f"Saved structured report to {out_path}")
 
 export_report_json(
-    report_id="coagulation_001",
+    report_id="coagulation_002",
     extracted_data=extracted_data
 )
 
