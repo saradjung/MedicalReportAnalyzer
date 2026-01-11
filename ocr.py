@@ -6,7 +6,7 @@ import numpy as np
 import re, json
 
 DATA_ROOT=Path("C:/medical_data")
-image_path= DATA_ROOT/ "coagulation_001.png"
+image_path= DATA_ROOT/ "uric_acid_001.png"
 
 image=Image.open(image_path)
 #image.show()
@@ -47,6 +47,8 @@ def normalize_test_name(name):
 
 # print("extracted_data:",extracted_data)
 # print(json.dumps(extracted_data,indent=2))
+
+
 def extract_candidate_rows(ocr_text):
     rows = []
     for line in ocr_text.split("\n"):
@@ -149,6 +151,39 @@ ontology = build_test_ontology(annotation_files)
 
 extracted_data = normalize_extracted_rows(parsed_rows, ontology)
 
+def classify_abnormality(value, reference_range):
+    """
+    Classify test value as low / normal / high
+    """
+    if not reference_range:
+        return "unknown"
+
+    try:
+        low, high = re.split(r"[-–]", reference_range)
+        low, high = float(low.strip()), float(high.strip())
+    except Exception:
+        return "unknown"
+
+    if value < low:
+        return "low"
+    elif value > high:
+        return "high"
+    else:
+        return "normal"
+    
+for test in extracted_data:
+    test["status"] = classify_abnormality(
+        test["value"],
+        test["reference_range"]
+    )
+
+extracted_data = [
+    t for t in extracted_data
+    if t["confidence"] >= 0.75
+]
+
+
+
 def calculate_accuracy(extracted_data, ground_truth_json):
     """
     Compare with fuzzy matching since OCR won't be perfect
@@ -201,28 +236,49 @@ def calculate_accuracy(extracted_data, ground_truth_json):
     
     return correct_names/total, correct_values/total
 
-ground_truth_json_path=DATA_ROOT/ "coagulation_001_annotations.json"
+ground_truth_json_path=DATA_ROOT/ "uric_acid_001_annotations.json"
 with open(ground_truth_json_path, 'r') as f:
     ground_truth_json = json.load(f)
 accuracy=calculate_accuracy(extracted_data,ground_truth_json)
 print("accuracy:",accuracy)
 
-def export_report_json(report_id, extracted_data, output_dir="outputs"):
-    output = {
+def build_final_report(report_id, extracted_data):
+    abnormal_tests = [
+        t for t in extracted_data
+        if t["status"] in ("low", "high")
+    ]
+
+    return {
         "report_id": report_id,
+        "total_tests": len(extracted_data),
+        "abnormal_count": len(abnormal_tests),
+        "abnormal_tests": abnormal_tests,
         "tests": extracted_data
     }
+
+
+def export_report_json(report_id, extracted_data, output_dir="outputs"):
+
     
     Path(output_dir).mkdir(exist_ok=True)
     out_path = Path(output_dir) / f"{report_id}_extracted.json"
-    
-    with open(out_path, "w") as f:
-        json.dump(output, f, indent=2)
-    
-    print(f"Saved structured report to {out_path}")
 
-export_report_json(
-    report_id="coagulation_001",
+    final_report = build_final_report(
+    report_id=report_id,
     extracted_data=extracted_data
 )
+
+    Path("outputs").mkdir(exist_ok=True)
+    with open(out_path, "w") as f:
+        json.dump(final_report, f, indent=2)
+
+    print(f"Saved structured report to {out_path}")
+
+
+export_report_json(
+    report_id="uric_acid_001",
+    extracted_data=extracted_data
+)
+
+
 

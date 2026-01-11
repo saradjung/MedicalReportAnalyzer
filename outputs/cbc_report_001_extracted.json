@@ -1,0 +1,144 @@
+{
+  "report_id": "cbc_report_001",
+  "total_tests": 13,
+  "abnormal_count": 2,
+  "abnormal_tests": [
+    {
+      "test_name": "mean cell hemoglobin mch",
+      "value": 22.7,
+      "unit": "PR",
+      "reference_range": "27-33",
+      "confidence": 0.96,
+      "raw_line": "Mean Cell Hemoplobin( MCH) 22.7 PR 27-33",
+      "status": "low"
+    },
+    {
+      "test_name": "mean cell hb conc mchc",
+      "value": 25.7,
+      "unit": "yy",
+      "reference_range": "32-38",
+      "confidence": 0.95,
+      "raw_line": "Mean Cell Hb Coenc(MCHC) 25.7 yy 32-38",
+      "status": "low"
+    }
+  ],
+  "tests": [
+    {
+      "test_name": "protein",
+      "value": 5.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 0.77,
+      "raw_line": "Potion 5",
+      "status": "unknown"
+    },
+    {
+      "test_name": "packed cell volume hct",
+      "value": 45.2,
+      "unit": "%",
+      "reference_range": "40-50",
+      "confidence": 0.98,
+      "raw_line": "6 Packed Cell Volume CHCT) 45.2 % 40-50",
+      "status": "normal"
+    },
+    {
+      "test_name": "mean cell hemoglobin mch",
+      "value": 22.7,
+      "unit": "PR",
+      "reference_range": "27-33",
+      "confidence": 0.96,
+      "raw_line": "Mean Cell Hemoplobin( MCH) 22.7 PR 27-33",
+      "status": "low"
+    },
+    {
+      "test_name": "mean cell hb conc mchc",
+      "value": 25.7,
+      "unit": "yy",
+      "reference_range": "32-38",
+      "confidence": 0.95,
+      "raw_line": "Mean Cell Hb Coenc(MCHC) 25.7 yy 32-38",
+      "status": "low"
+    },
+    {
+      "test_name": "total wbc count",
+      "value": 9200.0,
+      "unit": "cells/cumm",
+      "reference_range": "4000-11000",
+      "confidence": 1.0,
+      "raw_line": "Total WBC Count 9200 cells/cumm 4000-11000",
+      "status": "normal"
+    },
+    {
+      "test_name": "neutrophils",
+      "value": 66.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 1.0,
+      "raw_line": "Neutrophils 66 \u201cey 50-70",
+      "status": "unknown"
+    },
+    {
+      "test_name": "lymphocytes",
+      "value": 24.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 1.0,
+      "raw_line": "lymphocytes 24\u00b0 % 20 -40",
+      "status": "unknown"
+    },
+    {
+      "test_name": "eosinophils",
+      "value": 4.0,
+      "unit": "%",
+      "reference_range": "1-6",
+      "confidence": 0.83,
+      "raw_line": "t Easinophils 4 % 1-6",
+      "status": "normal"
+    },
+    {
+      "test_name": "monocytes",
+      "value": 6.0,
+      "unit": "%",
+      "reference_range": "0-10",
+      "confidence": 1.0,
+      "raw_line": "Monocytes 06 % 0-10",
+      "status": "normal"
+    },
+    {
+      "test_name": "absolute neutrophils count",
+      "value": 6072.0,
+      "unit": "foumm",
+      "reference_range": "2000-7000",
+      "confidence": 1.0,
+      "raw_line": "Absolute Neutrophils Count 6072 foumm 2000-7000",
+      "status": "normal"
+    },
+    {
+      "test_name": "absolute lymphocytes count",
+      "value": 2208.0,
+      "unit": "/cumm",
+      "reference_range": "1000-3000",
+      "confidence": 1.0,
+      "raw_line": "Absolute Lymphocytes Count 2208 /cumm 1000-3000",
+      "status": "normal"
+    },
+    {
+      "test_name": "absolute monocytes count",
+      "value": 552.0,
+      "unit": "/ornm",
+      "reference_range": "200-1000",
+      "confidence": 0.77,
+      "raw_line": "Absolut: Monocytes Count 552 /ornm 200-1000",
+      "status": "normal"
+    },
+    {
+      "test_name": "platelet count",
+      "value": 398000.0,
+      "unit": "cells/cumm",
+      "reference_range": null,
+      "confidence": 1.0,
+      "raw_line": "Platelet Count 398000 cells/cumm js",
+      "status": "unknown"
+    }
+  ]
+}
