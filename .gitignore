@@ -1,3 +1,4 @@
 Pipfile
 Pipfile.lock
 .env
+med_analyzer/db.sqlite3
