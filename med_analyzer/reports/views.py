@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from .forms import RegistrationForm, UploadReportForm
@@ -54,3 +54,17 @@ def upload_report_view(request):
     else:
         form = UploadReportForm()
     return render(request, "reports/upload.html", {"form": form})
+
+@login_required
+def report_detail_view(request, id):
+    report = get_object_or_404(MedicalReport, id=id, user=request.user)
+
+    # Only allow access if the report has been processed
+    if not report.processed:
+        return redirect("dashboard")
+
+    return render(request, "reports/report_detail.html", {"report": report})
+
+def logout_view(request):
+    logout(request)  # Log the user out
+    return redirect("login")
