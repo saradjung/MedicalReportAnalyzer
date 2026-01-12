@@ -170,5 +170,6 @@
       "reason": "Reference range not available to determine status.",
       "risk_level": "unknown"
     }
-  ]
+  ],
+  "patient_summary": "Your medical report contains 13 tests. 2 test(s) need attention. - mean cell hemoglobin mch: 22.7 PR (low). The value is below the normal reference range (27-33). - mean cell hb conc mchc: 25.7 yy (low). The value is below the normal reference range (32-38). Please consult your doctor for medical advice."
 }
