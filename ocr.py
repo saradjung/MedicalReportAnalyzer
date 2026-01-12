@@ -22,15 +22,90 @@ def preprocess_image(image_path):
     gray=cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Apply thresholding to get black text on white background
-    _, thresh=cv2.threshold(gray, 0,255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    # _, thresh=cv2.threshold(gray, 0,255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    denoised=cv2.fastNlMeansDenoising(thresh)
+    # denoised=cv2.fastNlMeansDenoising(thresh)
+     # Mild denoising only
+    gray = cv2.medianBlur(gray, 3)
 
-    return denoised
+    # Adaptive threshold (LOCAL, not global)
+    thresh = cv2.adaptiveThreshold(
+        gray,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        31,
+        10
+    )
+
+    return thresh
+
+def generate_preprocessed_versions(image_path):
+    img = cv2.imread(str(image_path))
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    versions = {}
+
+    # 1. Raw grayscale (baseline)
+    versions["raw"] = gray
+
+    # 2. Mild denoise
+    versions["denoised"] = cv2.medianBlur(gray, 3)
+
+    # 3. Adaptive threshold (SAFE)
+    versions["adaptive"] = cv2.adaptiveThreshold(
+        gray,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        31,
+        10
+    )
+
+    return versions
+
+def ocr_with_fallback(image_path):
+    versions = generate_preprocessed_versions(image_path)
+
+    ocr_results = {}
+    for name, img in versions.items():
+        text = pytesseract.image_to_string(img)
+        ocr_results[name] = text
+
+    return ocr_results
+
+def score_ocr_text(text):
+    lines = text.split("\n")
+    score = 0
+
+    for line in lines:
+        if re.search(r"\d", line):
+            score += 1
+        if re.search(r"(mg|dl|g/dl|mmol|%)", line.lower()):
+            score += 2
+
+    return score
+
+def get_best_ocr_text(image_path):
+    ocr_results=ocr_with_fallback(image_path)
+    best_text=""
+    best_score=-1
+    best_version=None
+    for name, text in ocr_results.items():
+        score=score_ocr_text(text)
+        print(f"OCR version '{name}' score:{score}")
+
+        if score> best_score:
+            best_score=score
+            best_text=text
+            best_version=name
+    print(f'\n using OCR version: {best_version}')
+    return best_text
+
 
 preprocessed=preprocess_image(image_path)
 cv2.imwrite("preprocessed.png",preprocessed)
-text=pytesseract.image_to_string(preprocessed)
+text=get_best_ocr_text(image_path)
 
 print(text)
 
