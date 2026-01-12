@@ -4,6 +4,7 @@ import cv2
 from pathlib import Path
 import numpy as np
 import re, json
+from llm_reasoner import llm_reasoner
 
 DATA_ROOT=Path("C:/medical_data")
 image_path= DATA_ROOT/ "cbc_report_001.png"
@@ -404,5 +405,22 @@ export_report_json(
     extracted_data=extracted_data
 )
 
+final_report = build_final_report(
+    report_id="cbc_report_001",
+    extracted_data=extracted_data
+)
+
+print("\n===== LLM EXPLANATION =====\n")
+explanation=llm_reasoner(final_report)
+print(explanation)
+
+print("\n===== PATIENT QUESTION =====\n")
+
+answer = llm_reasoner(
+    final_report,
+    "Is anything serious in my report?"
+)
+
+print(answer)
 
 
