@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - MedAnalyzer{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-semibold text-gray-800">Welcome, {{ user.username }}!</h1>
+    <p class="mt-4 text-lg text-gray-600">Manage your medical reports below.</p>
+
+    <div class="mt-6 flex justify-between items-center">
+        <a href="{% url 'upload' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Upload a New Report</a>
+    </div>
+
+    <h2 class="mt-8 text-2xl font-semibold text-gray-800">Your Reports</h2>
+    {% if reports %}
+        <div class="mt-4 bg-white shadow-md rounded-lg">
+            <table class="min-w-full table-auto text-sm">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="py-3 px-4 text-left">Report Name</th>
+                        <th class="py-3 px-4 text-left">Status</th>
+                        <th class="py-3 px-4 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-3 px-4">{{ report.upload.name }}</td>
+                        <td class="py-3 px-4">
+                            {% if report.processed %}
+                                <span class="text-green-600">Processed</span>
+                            {% else %}
+                                <span class="text-yellow-600">Processing...</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <a href="{% url 'report_detail' report.id %}" class="text-blue-600 hover:text-blue-800">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="mt-4 text-gray-600">No reports uploaded yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
