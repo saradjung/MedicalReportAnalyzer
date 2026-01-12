@@ -1,0 +1,30 @@
+{
+  "report_id": "uric_acid_001",
+  "total_tests": 2,
+  "abnormal_count": 0,
+  "abnormal_tests": [],
+  "tests": [
+    {
+      "test_name": "esr",
+      "value": 21.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 0.8,
+      "raw_line": "Ack. Date : ER 21:08 Report Date : EY 23:07",
+      "status": "unknown",
+      "reason": "Reference range not available to determine status.",
+      "risk_level": "unknown"
+    },
+    {
+      "test_name": "uric acid",
+      "value": 5.0,
+      "unit": null,
+      "reference_range": null,
+      "confidence": 1.0,
+      "raw_line": "URIC ACID 5,7 ngidl 35-72",
+      "status": "unknown",
+      "reason": "Reference range not available to determine status.",
+      "risk_level": "unknown"
+    }
+  ]
+}

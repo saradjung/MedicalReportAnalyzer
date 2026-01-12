@@ -4,3 +4,4 @@ Pillow
 opencv-python
 pandas
 numpy
+python-dotenv
