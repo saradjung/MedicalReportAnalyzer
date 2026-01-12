@@ -6,7 +6,7 @@ import numpy as np
 import re, json
 
 DATA_ROOT=Path("C:/medical_data")
-image_path= DATA_ROOT/ "uric_acid_001.png"
+image_path= DATA_ROOT/ "cbc_report_001.png"
 
 image=Image.open(image_path)
 #image.show()
@@ -170,19 +170,49 @@ def classify_abnormality(value, reference_range):
         return "high"
     else:
         return "normal"
-    
+
+def generate_reason(test):
+    if test['status']=='high':
+        return f"The value is above the normal reference range ({test['reference_range']})."
+    elif test["status"] == "low":
+        return f"The value is below the normal reference range ({test['reference_range']})."
+    elif test["status"] == "normal":
+        return f"The value is within the normal reference range ({test['reference_range']})."
+    else:
+        return "Reference range not available to determine status."
+
+def assign_risk_level(status):
+    if status in ("high", "low"):
+        return "needs_attention"
+    elif status == "normal":
+        return "no_action"
+    return "unknown"
+
 for test in extracted_data:
     test["status"] = classify_abnormality(
         test["value"],
-        test["reference_range"]
+        test["reference_range"])
+    test["reason"] = generate_reason(test)
+    test["risk_level"] = assign_risk_level(test["status"]
     )
+
+
+
 
 extracted_data = [
     t for t in extracted_data
     if t["confidence"] >= 0.75
 ]
 
-
+def generate_reason(test):
+    if test['status']=='high':
+        return f"The value is above the normal reference range ({test['reference_range']})."
+    elif test["status"] == "low":
+        return f"The value is below the normal reference range ({test['reference_range']})."
+    elif test["status"] == "normal":
+        return f"The value is within the normal reference range ({test['reference_range']})."
+    else:
+        return "Reference range not available to determine status."
 
 def calculate_accuracy(extracted_data, ground_truth_json):
     """
@@ -236,7 +266,7 @@ def calculate_accuracy(extracted_data, ground_truth_json):
     
     return correct_names/total, correct_values/total
 
-ground_truth_json_path=DATA_ROOT/ "uric_acid_001_annotations.json"
+ground_truth_json_path=DATA_ROOT/ "cbc_report_001_annotations.json"
 with open(ground_truth_json_path, 'r') as f:
     ground_truth_json = json.load(f)
 accuracy=calculate_accuracy(extracted_data,ground_truth_json)
@@ -275,8 +305,10 @@ def export_report_json(report_id, extracted_data, output_dir="outputs"):
     print(f"Saved structured report to {out_path}")
 
 
+
+    
 export_report_json(
-    report_id="uric_acid_001",
+    report_id="cbc_report_001",
     extracted_data=extracted_data
 )
 
