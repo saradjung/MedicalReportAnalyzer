@@ -4,9 +4,10 @@ import cv2
 from pathlib import Path
 import numpy as np
 import re, json
+from llm_reasoner import llm_reasoner
 
 DATA_ROOT=Path("C:/medical_data")
-image_path= DATA_ROOT/ "coagulation_001.png"
+image_path= DATA_ROOT/ "cbc_report_001.png"
 
 image=Image.open(image_path)
 #image.show()
@@ -22,15 +23,90 @@ def preprocess_image(image_path):
     gray=cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Apply thresholding to get black text on white background
-    _, thresh=cv2.threshold(gray, 0,255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    # _, thresh=cv2.threshold(gray, 0,255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    denoised=cv2.fastNlMeansDenoising(thresh)
+    # denoised=cv2.fastNlMeansDenoising(thresh)
+     # Mild denoising only
+    gray = cv2.medianBlur(gray, 3)
 
-    return denoised
+    # Adaptive threshold (LOCAL, not global)
+    thresh = cv2.adaptiveThreshold(
+        gray,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        31,
+        10
+    )
+
+    return thresh
+
+def generate_preprocessed_versions(image_path):
+    img = cv2.imread(str(image_path))
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    versions = {}
+
+    # 1. Raw grayscale (baseline)
+    versions["raw"] = gray
+
+    # 2. Mild denoise
+    versions["denoised"] = cv2.medianBlur(gray, 3)
+
+    # 3. Adaptive threshold (SAFE)
+    versions["adaptive"] = cv2.adaptiveThreshold(
+        gray,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        31,
+        10
+    )
+
+    return versions
+
+def ocr_with_fallback(image_path):
+    versions = generate_preprocessed_versions(image_path)
+
+    ocr_results = {}
+    for name, img in versions.items():
+        text = pytesseract.image_to_string(img)
+        ocr_results[name] = text
+
+    return ocr_results
+
+def score_ocr_text(text):
+    lines = text.split("\n")
+    score = 0
+
+    for line in lines:
+        if re.search(r"\d", line):
+            score += 1
+        if re.search(r"(mg|dl|g/dl|mmol|%)", line.lower()):
+            score += 2
+
+    return score
+
+def get_best_ocr_text(image_path):
+    ocr_results=ocr_with_fallback(image_path)
+    best_text=""
+    best_score=-1
+    best_version=None
+    for name, text in ocr_results.items():
+        score=score_ocr_text(text)
+        print(f"OCR version '{name}' score:{score}")
+
+        if score> best_score:
+            best_score=score
+            best_text=text
+            best_version=name
+    print(f'\n using OCR version: {best_version}')
+    return best_text
+
 
 preprocessed=preprocess_image(image_path)
 cv2.imwrite("preprocessed.png",preprocessed)
-text=pytesseract.image_to_string(preprocessed)
+text=get_best_ocr_text(image_path)
 
 print(text)
 
@@ -47,6 +123,8 @@ def normalize_test_name(name):
 
 # print("extracted_data:",extracted_data)
 # print(json.dumps(extracted_data,indent=2))
+
+
 def extract_candidate_rows(ocr_text):
     rows = []
     for line in ocr_text.split("\n"):
@@ -149,6 +227,62 @@ ontology = build_test_ontology(annotation_files)
 
 extracted_data = normalize_extracted_rows(parsed_rows, ontology)
 
+def classify_abnormality(value, reference_range):
+    """
+    Classify test value as low / normal / high
+    """
+    if not reference_range:
+        return "unknown"
+
+    try:
+        low, high = re.split(r"[-–]", reference_range)
+        low, high = float(low.strip()), float(high.strip())
+    except Exception:
+        return "unknown"
+
+    if value < low:
+        return "low"
+    elif value > high:
+        return "high"
+    else:
+        return "normal"
+
+def generate_reason(test):
+    if test['status']=='high':
+        return f"The value is above the normal reference range ({test['reference_range']})."
+    elif test["status"] == "low":
+        return f"The value is below the normal reference range ({test['reference_range']})."
+    elif test["status"] == "normal":
+        return f"The value is within the normal reference range ({test['reference_range']})."
+    else:
+        return "Reference range not available to determine status."
+
+def assign_risk_level(status):
+    if status in ("high", "low"):
+        return "needs_attention"
+    elif status == "normal":
+        return "no_action"
+    return "unknown"
+
+
+
+
+
+for test in extracted_data:
+    test["status"] = classify_abnormality(
+        test["value"],
+        test["reference_range"])
+    test["reason"] = generate_reason(test)
+    test["risk_level"] = assign_risk_level(test["status"]
+    )
+
+
+
+
+extracted_data = [
+    t for t in extracted_data
+    if t["confidence"] >= 0.75]
+
 def calculate_accuracy(extracted_data, ground_truth_json):
     """
     Compare with fuzzy matching since OCR won't be perfect
@@ -201,28 +335,92 @@ def calculate_accuracy(extracted_data, ground_truth_json):
     
     return correct_names/total, correct_values/total
 
-ground_truth_json_path=DATA_ROOT/ "coagulation_001_annotations.json"
+ground_truth_json_path=DATA_ROOT/ "cbc_report_001_annotations.json"
 with open(ground_truth_json_path, 'r') as f:
     ground_truth_json = json.load(f)
 accuracy=calculate_accuracy(extracted_data,ground_truth_json)
 print("accuracy:",accuracy)
 
-def export_report_json(report_id, extracted_data, output_dir="outputs"):
-    output = {
+def generate_patient_summary(final_report):
+    lines=[]
+    lines.append(
+         f"Your medical report contains {final_report['total_tests']} tests."
+    )
+    if final_report["abnormal_count"]==0:
+        lines.append("All results are within normal range.")
+        return " ".join(lines)
+    lines.append(
+        f"{final_report['abnormal_count']} test(s) need attention.")
+    
+    for test in final_report["abnormal_tests"]:
+        lines.append(
+             f"- {test['test_name']}: {test['value']} {test['unit']} "
+            f"({test['status']}). {test['reason']}"
+        )
+    lines.append("Please consult your doctor for medical advice.")
+    
+    return " ".join(lines)
+
+def build_final_report(report_id, extracted_data):
+    abnormal_tests = [
+        t for t in extracted_data
+        if t["status"] in ("low", "high")
+    ]
+
+    report={
         "report_id": report_id,
+        "total_tests": len(extracted_data),
+        "abnormal_count": len(abnormal_tests),
+        "abnormal_tests": abnormal_tests,
         "tests": extracted_data
     }
+    report["patient_summary"]=generate_patient_summary(report)
+
+    return report
+
+
+
+
+def export_report_json(report_id, extracted_data, output_dir="outputs"):
+
     
     Path(output_dir).mkdir(exist_ok=True)
     out_path = Path(output_dir) / f"{report_id}_extracted.json"
-    
+
+    final_report = build_final_report(
+    report_id=report_id,
+    extracted_data=extracted_data)
+
+    Path("outputs").mkdir(exist_ok=True)
     with open(out_path, "w") as f:
-        json.dump(output, f, indent=2)
-    
+        json.dump(final_report, f, indent=2)
+
     print(f"Saved structured report to {out_path}")
 
+
+
+    
 export_report_json(
-    report_id="coagulation_001",
+    report_id="cbc_report_001",
     extracted_data=extracted_data
 )
+
+final_report = build_final_report(
+    report_id="cbc_report_001",
+    extracted_data=extracted_data
+)
+
+print("\n===== LLM EXPLANATION =====\n")
+explanation=llm_reasoner(final_report)
+print(explanation)
+
+print("\n===== PATIENT QUESTION =====\n")
+
+answer = llm_reasoner(
+    final_report,
+    "Is anything serious in my report?"
+)
+
+print(answer)
+
 
