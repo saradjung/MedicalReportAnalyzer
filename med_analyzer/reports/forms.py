@@ -11,6 +11,12 @@ class RegistrationForm(UserCreationForm):
         fields = ["username", "email", "password1", "password2"]
 
 class UploadReportForm(forms.ModelForm):
+    def clean_upload(self):
+        file = self.cleaned_data["upload"]
+        if not file.name.lower().endswith((".png", ".jpg", ".jpeg", ".pdf")):
+            raise forms.ValidationError("Only image or PDF reports allowed.")
+        return file
+    
     class Meta:
         model = MedicalReport
         fields = ["upload"]

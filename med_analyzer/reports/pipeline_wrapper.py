@@ -34,7 +34,7 @@ def process_report(file_path):
     # Build final report JSON
     final_report = build_final_report("user_upload", extracted_data)
 
-    # Generate patient-friendly explanation via LLM
+    # Generate patient-friendly explanation via LLM & If quota exceeded, this raises RuntimeError("AI_QUOTA_EXCEEDED")
     llm_explanation = llm_reasoner(final_report)
 
     return final_report, llm_explanation

@@ -11,7 +11,11 @@
         <!-- Navbar -->
         <nav class="bg-blue-600 p-4">
             <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <a href="{% url 'dashboard' %}" class="text-white text-2xl font-semibold">MedAnalyzer</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="text-white text-2xl font-semibold">MedAnalyzer</a>
+                {% else %}
+                    <a href="{% url 'home' %}" class="text-white text-2xl font-semibold">MedAnalyzer</a>
+                {% endif %}
                 <div>
                     {% if user.is_authenticated %}
                         <span class="text-white">Hello, {{ user.username }}</span>
