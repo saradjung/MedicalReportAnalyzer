@@ -11,24 +11,30 @@ import json
 DATA_ROOT = Path("C:/medical_data")  # or dynamic
 
 def process_report(file_path):
+    # 1OCR + preprocessing
     text = get_best_ocr_text(file_path)
 
-    rows = extract_candidate_rows(text)
-    parsed = parse_candidate_rows(rows)
+    # Candidate rows + parsing
+    candidate_rows = extract_candidate_rows(text)
+    parsed_rows = parse_candidate_rows(candidate_rows)
 
+    # Load ontology (existing annotation files)
     annotation_files = list(DATA_ROOT.glob("*.json"))
     ontology = build_test_ontology(annotation_files)
 
-    extracted = normalize_extracted_rows(parsed, ontology)
+    # Normalize rows
+    extracted_data = normalize_extracted_rows(parsed_rows, ontology)
 
-    for test in extracted:
+    # Assign status, reasons, risk
+    for test in extracted_data:
         test["status"] = classify_abnormality(test["value"], test["reference_range"])
         test["reason"] = generate_reason(test)
         test["risk_level"] = assign_risk_level(test["status"])
 
-    final_report = build_final_report("user_upload", extracted)
+    # Build final report JSON
+    final_report = build_final_report("user_upload", extracted_data)
 
-    # If quota exceeded, this raises RuntimeError("AI_QUOTA_EXCEEDED")
-    explanation = llm_reasoner(final_report)
+    # Generate patient-friendly explanation via LLM & If quota exceeded, this raises RuntimeError("AI_QUOTA_EXCEEDED")
+    llm_explanation = llm_reasoner(final_report)
 
-    return final_report, explanation
+    return final_report, llm_explanation
