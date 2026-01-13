@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Report Detail - MedAnalyzer{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-semibold text-gray-800">Report: {{ report.upload.name }}</h1>
+
+    <div class="mt-6 bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-800">Patient Summary</h2>
+        <p class="mt-2 text-gray-700">{{ report.llm_explanation }}</p>
+    </div>
+
+    <div class="mt-8 bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-800">Extracted Data</h2>
+        <table class="min-w-full table-auto mt-4 text-sm">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="py-3 px-4 text-left">Test Name</th>
+                    <th class="py-3 px-4 text-left">Value</th>
+                    <th class="py-3 px-4 text-left">Reference Range</th>
+                    <th class="py-3 px-4 text-left">Status</th>
+                    <th class="py-3 px-4 text-left">Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in report.report_json.tests %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="py-3 px-4">{{ test.test_name }}</td>
+                    <td class="py-3 px-4">{{ test.value }} {{ test.unit }}</td>
+                    <td class="py-3 px-4">{{ test.reference_range }}</td>
+                    <td class="py-3 px-4">{{ test.status }}</td>
+                    <td class="py-3 px-4">{{ test.reason }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-8 text-center">
+        <a href="{% url 'dashboard' %}" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}
