@@ -1,42 +1,108 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="max-w-7xl mx-auto px-6 py-10">
+  <h1 class="text-3xl font-bold">{{ report.upload.name }}</h1>
 
-    <h1 class="text-3xl font-bold">{{ report.upload.name }}</h1>
+  <div class="mt-6 bg-white p-8 rounded-2xl shadow">
+    <h2 class="font-semibold text-lg mb-2">AI Summary</h2>
+    <p class="text-gray-700">{{ report.llm_explanation }}</p>
+  </div>
+  <!-- CHAT SECTION -->
+  <div class="mt-8 bg-white p-8 rounded-2xl shadow">
+    <h2 class="font-semibold text-lg mb-4">Ask about this report</h2>
 
-    <div class="mt-6 bg-white p-8 rounded-2xl shadow">
-        <h2 class="font-semibold text-lg mb-2">AI Summary</h2>
-        <p class="text-gray-700">{{ report.llm_explanation }}</p>
+    <!-- Chat messages -->
+    <div
+      id="chat-box"
+      class="border rounded-lg p-4 h-64 overflow-y-auto bg-gray-50 mb-4"
+    >
+      <div class="text-gray-500 text-sm">Ask a question about your report</div>
     </div>
 
-    <div class="mt-8 bg-white p-8 rounded-2xl shadow">
-        <h2 class="font-semibold text-lg mb-4">Lab Results</h2>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="p-3 text-left">Test</th>
-                        <th class="p-3 text-left">Value</th>
-                        <th class="p-3 text-left">Range</th>
-                        <th class="p-3 text-left">Status</th>
-                        <th class="p-3 text-left">Reason</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for test in report.report_json.tests %}
-                    <tr class="border-t">
-                        <td class="p-3">{{ test.test_name }}</td>
-                        <td class="p-3">{{ test.value }} {{ test.unit }}</td>
-                        <td class="p-3">{{ test.reference_range }}</td>
-                        <td class="p-3">{{ test.status }}</td>
-                        <td class="p-3">{{ test.reason }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <!-- Input -->
+    <div class="flex gap-2">
+      <input
+        id="chat-input"
+        type="text"
+        placeholder="Type your question..."
+        class="flex-1 border rounded-lg px-4 py-2 focus:outline-none"
+      />
+      <button
+        onclick="sendQuestion()"
+        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700"
+      >
+        Ask
+      </button>
     </div>
+  </div>
+
+  <div class="mt-8 bg-white p-8 rounded-2xl shadow">
+    <h2 class="font-semibold text-lg mb-4">Lab Results</h2>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="p-3 text-left">Test</th>
+            <th class="p-3 text-left">Value</th>
+            <th class="p-3 text-left">Range</th>
+            <th class="p-3 text-left">Status</th>
+            <th class="p-3 text-left">Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for test in report.report_json.tests %}
+          <tr class="border-t">
+            <td class="p-3">{{ test.test_name }}</td>
+            <td class="p-3">{{ test.value }} {{ test.unit }}</td>
+            <td class="p-3">{{ test.reference_range }}</td>
+            <td class="p-3">{{ test.status }}</td>
+            <td class="p-3">{{ test.reason }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
+<script>
+  function appendMessage(sender, text) {
+    const chatBox = document.getElementById("chat-box");
+    const msg = document.createElement("div");
+    msg.className =
+      sender === "user" ? "text-right mb-2" : "text-left mb-2 text-gray-800";
+
+    msg.innerHTML = `<span class="inline-block px-3 py-2 rounded-lg ${
+      sender === "user" ? "bg-blue-100" : "bg-gray-200"
+    }">${text}</span>`;
+
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function sendQuestion() {
+    const input = document.getElementById("chat-input");
+    const question = input.value.trim();
+    if (!question) return;
+
+    appendMessage("user", question);
+    input.value = "";
+
+    fetch("{% url 'ask_report_question' report.id %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ question }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        appendMessage("ai", data.answer);
+      })
+      .catch(() => {
+        appendMessage("ai", "Something went wrong. Please try again.");
+      });
+  }
+</script>
+
 {% endblock %}

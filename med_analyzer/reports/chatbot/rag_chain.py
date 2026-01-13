@@ -52,6 +52,6 @@ Answer based ONLY on the report:
         ]
     )
 
-    chain=prompt | llm | StrOutputParser
+    chain=prompt | llm | StrOutputParser()
 
     return chain
