@@ -36,23 +36,41 @@ def dashboard_view(request):
 def upload_report_view(request):
     if request.method == "POST":
         form = UploadReportForm(request.POST, request.FILES)
+
         if form.is_valid():
             report_obj = form.save(commit=False)
             report_obj.user = request.user
             report_obj.save()
 
-            # Process report in the background or immediately
-            report_path = Path(report_obj.upload.path)
-            report_json, llm_explanation = process_report(report_path)
+            try:
+                report_path = Path(report_obj.upload.path)
+                report_json, llm_explanation = process_report(report_path)
 
-            report_obj.report_json = report_json
-            report_obj.llm_explanation = llm_explanation
-            report_obj.processed = True
-            report_obj.save()
+                report_obj.report_json = report_json
+                report_obj.llm_explanation = llm_explanation
+                report_obj.processed = True
+                report_obj.save()
 
-            return redirect("dashboard")
+                return redirect("dashboard")
+
+            except RuntimeError as e:
+                if str(e) == "AI_QUOTA_EXCEEDED":
+                    # Delete the uploaded object since we don't want partial state
+                    report_obj.delete()
+
+                    form.add_error(None, "AI service is temporarily unavailable due to usage limits. Please try again later.")
+                    return render(request, "reports/upload.html", {"form": form})
+
+                raise  # unknown runtime error → crash visibly during dev
+
+            except Exception as e:
+                report_obj.delete()
+                form.add_error(None, f"Processing failed: {str(e)}")
+                return render(request, "reports/upload.html", {"form": form})
+
     else:
         form = UploadReportForm()
+
     return render(request, "reports/upload.html", {"form": form})
 
 @login_required
