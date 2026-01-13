@@ -7,6 +7,8 @@ from pathlib import Path
 from .pipeline_wrapper import process_report  # We will wrap your pipeline
 
 def home_view(request):
+    if request.user.is_authenticated:
+        return redirect("dashboard")
     return render(request, "reports/home.html")
 
 def register_view(request):
