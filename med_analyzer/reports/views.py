@@ -1,10 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from .forms import RegistrationForm, UploadReportForm
+from django.http import JsonResponse
 from .models import MedicalReport
 from pathlib import Path
 from .pipeline_wrapper import process_report  # We will wrap your pipeline
+import json
+from .chatbot.chat_service import answer_report_question
 
 def home_view(request):
     if request.user.is_authenticated:
@@ -91,3 +95,30 @@ def report_detail_view(request, id):
 def logout_view(request):
     logout(request)  # Log the user out
     return redirect("login")
+
+@login_required
+@require_POST
+def ask_report_question(request, id):
+    try:
+        report= get_object_or_404(MedicalReport, id=id, user=request.user)
+
+        data=json.loads(request.body)
+        question=data.get("question","").strip()
+
+        if not question:
+            return JsonResponse({"answer":"please ask a valid question."})
+        
+        answer=answer_report_question(
+            report_json=report.report_json,
+            llm_explanation=report.llm_explanation,
+            question=question,
+        )
+
+        return JsonResponse({"answer":answer})
+
+    except Exception as e:
+            print("❌ CHATBOT ERROR:", str(e))  # VERY IMPORTANT
+            return JsonResponse(
+                {"answer": "Internal error while answering your question."},
+                status=500
+            )

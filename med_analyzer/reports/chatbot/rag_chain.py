@@ -29,8 +29,7 @@ Rules:
 - ONLY use the provided report data.
 - DO NOT diagnose diseases.
 - DO NOT give treatment or medication advice.
-- If the answer is not in the report, say:
-  "This information is not available in the report."
+
 - Be clear, calm, and patient-friendly.
             """,
         ),
