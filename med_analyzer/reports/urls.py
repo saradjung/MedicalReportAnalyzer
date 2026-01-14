@@ -9,4 +9,5 @@ urlpatterns = [
     path("upload/", views.upload_report_view, name="upload"),
     path("report/<int:id>/", views.report_detail_view, name="report_detail"),
     path('logout/', views.logout_view, name='logout'),
+    path('report/<int:report_id>/chat',views.chat_view,name="chat_view")
 ]
