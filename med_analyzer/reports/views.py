@@ -8,7 +8,6 @@ from .models import MedicalReport, ChatMessage
 from pathlib import Path
 from .pipeline_wrapper import process_report  # We will wrap your pipeline
 import json
-from .chatbot.chat_service import answer_report_question
 from .chatbot.rag_chain import get_report_qa_chain, format_chat_history
 
 def home_view(request):
