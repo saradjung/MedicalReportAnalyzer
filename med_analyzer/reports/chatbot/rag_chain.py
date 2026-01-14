@@ -49,6 +49,9 @@ Medical Report (structured):
 Doctor-style Explanation:
 {llm_explanation}
 
+Previous Conversation:
+{chat_history}
+
 User Question:
 {question}
 
@@ -61,3 +64,15 @@ Answer the user clearly using the interpretation above:
     chain=prompt | llm | StrOutputParser()
 
     return chain
+
+def format_chat_history(messages):
+    """
+    Convert DB chat messages into a readable conversation transcript
+    """
+    history = []
+    for msg in messages:
+        if msg.role == "user":
+            history.append(f"Patient asks: {msg.content}")
+        else:
+            history.append(f"Assistant explains: {msg.content}")
+    return "\n".join(history)

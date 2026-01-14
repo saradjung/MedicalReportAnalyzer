@@ -4,11 +4,12 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from .forms import RegistrationForm, UploadReportForm
 from django.http import JsonResponse
-from .models import MedicalReport
+from .models import MedicalReport, ChatMessage
 from pathlib import Path
 from .pipeline_wrapper import process_report  # We will wrap your pipeline
 import json
 from .chatbot.chat_service import answer_report_question
+from .chatbot.rag_chain import get_report_qa_chain, format_chat_history
 
 def home_view(request):
     if request.user.is_authenticated:
@@ -90,7 +91,9 @@ def report_detail_view(request, id):
     if not report.processed:
         return redirect("dashboard")
 
-    return render(request, "reports/report_detail.html", {"report": report})
+    return render(request, "reports/report_detail.html", {"report": report,
+                                                          "chat_messages":report.chat_messages.order_by("created_at")},
+                  )
 
 def logout_view(request):
     logout(request)  # Log the user out
@@ -98,27 +101,39 @@ def logout_view(request):
 
 @login_required
 @require_POST
-def ask_report_question(request, id):
-    try:
-        report= get_object_or_404(MedicalReport, id=id, user=request.user)
+def chat_view(request, report_id):
+    report = get_object_or_404(MedicalReport, id=report_id, user=request.user)
 
-        data=json.loads(request.body)
-        question=data.get("question","").strip()
+    question = request.POST.get("question", "").strip()
+    if not question:
+        return JsonResponse({"error": "empty question"}, status=400)
 
-        if not question:
-            return JsonResponse({"answer":"please ask a valid question."})
-        
-        answer=answer_report_question(
-            report_json=report.report_json,
-            llm_explanation=report.llm_explanation,
-            question=question,
-        )
+    ChatMessage.objects.create(
+        user=request.user,
+        report=report,
+        role="user",
+        content=question,
+    )
 
-        return JsonResponse({"answer":answer})
+    history = ChatMessage.objects.filter(
+        user=request.user,
+        report=report
+    ).order_by("created_at")
 
-    except Exception as e:
-            print("❌ CHATBOT ERROR:", str(e))  # VERY IMPORTANT
-            return JsonResponse(
-                {"answer": "Internal error while answering your question."},
-                status=500
-            )
+    qa_chain = get_report_qa_chain()
+
+    answer = qa_chain.invoke({
+        "report_json": report.report_json,
+        "llm_explanation": report.llm_explanation,
+        "chat_history": format_chat_history(history),
+        "question": question,
+    })
+
+    ChatMessage.objects.create(
+        user=request.user,
+        report=report,
+        role="assistant",
+        content=answer,
+    )
+
+    return JsonResponse({"answer": answer})

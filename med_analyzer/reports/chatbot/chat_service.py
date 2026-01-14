@@ -11,6 +11,7 @@ def answer_report_question(report_json, llm_explanation, question ):
         "report_json":report_json,
         "llm_explanation":llm_explanation,
         "question":question,
+        "chat_history":"",
     })
 
     return response

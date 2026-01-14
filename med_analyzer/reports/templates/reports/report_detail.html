@@ -15,9 +15,21 @@
     <!-- Chat messages -->
     <div
       id="chat-box"
-      class="border rounded-lg p-4 h-64 overflow-y-auto bg-gray-50 mb-4"
+      class="border rounded-lg p-4 h-64 overflow-y-auto bg-gray-50 mb-4 space-y-2"
     >
+      {% if chat_messages %} {% for msg in chat_messages %}
+      <div
+        class="{% if msg.role == 'user' %}text-right{% else %}text-left{% endif %}"
+      >
+        <span
+          class="inline-block px-3 py-2 rounded-lg text-sm {% if msg.role == 'user' %} bg-blue-100 text-blue-900 {% else %} bg-gray-200 text-gray-800 {% endif %}"
+        >
+          {{ msg.content|linebreaksbr }}
+        </span>
+      </div>
+      {% endfor %} {% else %}
       <div class="text-gray-500 text-sm">Ask a question about your report</div>
+      {% endif %}
     </div>
 
     <!-- Input -->
@@ -70,12 +82,19 @@
   function appendMessage(sender, text) {
     const chatBox = document.getElementById("chat-box");
     const msg = document.createElement("div");
+
     msg.className =
       sender === "user" ? "text-right mb-2" : "text-left mb-2 text-gray-800";
 
-    msg.innerHTML = `<span class="inline-block px-3 py-2 rounded-lg ${
-      sender === "user" ? "bg-blue-100" : "bg-gray-200"
-    }">${text}</span>`;
+    msg.innerHTML = `
+    <span class="inline-block px-3 py-2 rounded-lg text-sm ${
+      sender === "user"
+        ? "bg-blue-100 text-blue-900"
+        : "bg-gray-200 text-gray-800"
+    }">
+      ${text}
+    </span>
+  `;
 
     chatBox.appendChild(msg);
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -89,13 +108,15 @@
     appendMessage("user", question);
     input.value = "";
 
-    fetch("{% url 'ask_report_question' report.id %}", {
+    fetch("{% url 'chat_view' report.id %}", {
       method: "POST",
       headers: {
         "X-CSRFToken": "{{ csrf_token }}",
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({ question }),
+      body: new URLSearchParams({
+        question: question,
+      }),
     })
       .then((res) => res.json())
       .then((data) => {
