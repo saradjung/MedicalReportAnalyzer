@@ -1,42 +1,30 @@
 {
   "report_id": "cbc_report_001",
   "total_tests": 12,
-  "abnormal_count": 1,
-  "abnormal_tests": [
-    {
-      "test_name": "mean cell hb conc mchc",
-      "value": 25.7,
-      "unit": "%",
-      "reference_range": "32-38",
-      "confidence": 0.98,
-      "raw_line": "Mean Cell Hb Conc(MCHC) 25.7 % 32-38",
-      "status": "low",
-      "reason": "The value is below the normal reference range (32-38).",
-      "risk_level": "needs_attention"
-    }
-  ],
+  "abnormal_count": 0,
+  "abnormal_tests": [],
   "tests": [
     {
       "test_name": "packed cell volume hct",
       "value": 45.2,
       "unit": "%",
-      "reference_range": "40-50",
+      "reference_range": null,
       "confidence": 1.0,
       "raw_line": "6 Packed Cell Volume (HCT) 45.2 % 40-50",
-      "status": "normal",
-      "reason": "The value is within the normal reference range (40-50).",
-      "risk_level": "no_action"
+      "status": "unknown",
+      "reason": "Reference range not available to determine status.",
+      "risk_level": "unknown"
     },
     {
       "test_name": "mean cell volume mcv",
       "value": 88.6,
       "unit": "fn",
-      "reference_range": "83-101",
+      "reference_range": null,
       "confidence": 0.97,
       "raw_line": "Mean Cell Volume(MCV) 88.6 fn 83-101",
-      "status": "normal",
-      "reason": "The value is within the normal reference range (83-101).",
-      "risk_level": "no_action"
+      "status": "unknown",
+      "reason": "Reference range not available to determine status.",
+      "risk_level": "unknown"
     },
     {
       "test_name": "mean cell hemoglobin mch",
@@ -53,23 +41,23 @@
       "test_name": "mean cell hb conc mchc",
       "value": 25.7,
       "unit": "%",
-      "reference_range": "32-38",
+      "reference_range": null,
       "confidence": 0.98,
       "raw_line": "Mean Cell Hb Conc(MCHC) 25.7 % 32-38",
-      "status": "low",
-      "reason": "The value is below the normal reference range (32-38).",
-      "risk_level": "needs_attention"
+      "status": "unknown",
+      "reason": "Reference range not available to determine status.",
+      "risk_level": "unknown"
     },
     {
       "test_name": "neutrophils",
       "value": 66.0,
       "unit": "%",
-      "reference_range": "50-70",
+      "reference_range": null,
       "confidence": 1.0,
       "raw_line": "Neutrophils 66 % 50-70",
-      "status": "normal",
-      "reason": "The value is within the normal reference range (50-70).",
-      "risk_level": "no_action"
+      "status": "unknown",
+      "reason": "Reference range not available to determine status.",
+      "risk_level": "unknown"
     },
     {
       "test_name": "lymphocytes",
@@ -86,61 +74,61 @@
       "test_name": "eosinophils",
       "value": 4.0,
       "unit": "%",
-      "reference_range": "1-6",
+      "reference_range": null,
       "confidence": 1.0,
       "raw_line": "\u00a2 Eosinophils 4 % 1-6",
-      "status": "normal",
-      "reason": "The value is within the normal reference range (1-6).",
-      "risk_level": "no_action"
+      "status": "unknown",
+      "reason": "Reference range not available to determine status.",
+      "risk_level": "unknown"
     },
     {
       "test_name": "monocytes",
       "value": 6.0,
       "unit": "%",
-      "reference_range": "0-10",
+      "reference_range": null,
       "confidence": 1.0,
       "raw_line": "Monocytes 06 % 0-10",
-      "status": "normal",
-      "reason": "The value is within the normal reference range (0-10).",
-      "risk_level": "no_action"
+      "status": "unknown",
+      "reason": "Reference range not available to determine status.",
+      "risk_level": "unknown"
     },
     {
       "test_name": "absolute neutrophils count",
       "value": 6072.0,
-      "unit": "/cumm",
-      "reference_range": "2000-7000",
+      "unit": "cumm",
+      "reference_range": null,
       "confidence": 1.0,
       "raw_line": "Absolute Neutrophils Count 6072 /cumm 2000-7000",
-      "status": "normal",
-      "reason": "The value is within the normal reference range (2000-7000).",
-      "risk_level": "no_action"
+      "status": "unknown",
+      "reason": "Reference range not available to determine status.",
+      "risk_level": "unknown"
     },
     {
       "test_name": "absolute lymphocytes count",
       "value": 2208.0,
-      "unit": "/cumm",
-      "reference_range": "1000-3000",
+      "unit": "cumm",
+      "reference_range": null,
       "confidence": 1.0,
       "raw_line": "Absolute Lymphocytes Count 2208 /cumm 1000-3000",
-      "status": "normal",
-      "reason": "The value is within the normal reference range (1000-3000).",
-      "risk_level": "no_action"
+      "status": "unknown",
+      "reason": "Reference range not available to determine status.",
+      "risk_level": "unknown"
     },
     {
       "test_name": "absolute monocytes count",
       "value": 552.0,
-      "unit": "/cumm",
-      "reference_range": "200-1000",
+      "unit": "cumm",
+      "reference_range": null,
       "confidence": 1.0,
       "raw_line": "Absolute Monocytes Count 552 /cumm 200-1000",
-      "status": "normal",
-      "reason": "The value is within the normal reference range (200-1000).",
-      "risk_level": "no_action"
+      "status": "unknown",
+      "reason": "Reference range not available to determine status.",
+      "risk_level": "unknown"
     },
     {
       "test_name": "platelet count",
       "value": 398000.0,
-      "unit": "cells/cumm",
+      "unit": "cellscumm",
       "reference_range": null,
       "confidence": 1.0,
       "raw_line": "Platelet Count 398000 cells/cumm fF",
@@ -149,5 +137,5 @@
       "risk_level": "unknown"
     }
   ],
-  "patient_summary": "Your medical report contains 12 tests. 1 test(s) need attention. - mean cell hb conc mchc: 25.7 % (low). The value is below the normal reference range (32-38). Please consult your doctor for medical advice."
+  "patient_summary": "Your medical report contains 12 tests. All results are within normal range."
 }

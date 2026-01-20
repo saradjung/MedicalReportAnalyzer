@@ -6,9 +6,10 @@ from .forms import RegistrationForm, UploadReportForm
 from django.http import JsonResponse
 from .models import MedicalReport, ChatMessage
 from pathlib import Path
-from .pipeline_wrapper import process_report  # We will wrap your pipeline
+# from .pipeline_wrapper import process_report  
 import json
 from .chatbot.rag_chain import get_report_qa_chain, format_chat_history
+from reports.pipeline.pipeline import run_pipeline
 
 def home_view(request):
     if request.user.is_authenticated:
@@ -53,7 +54,7 @@ def upload_report_view(request):
 
             try:
                 report_path = Path(report_obj.upload.path)
-                report_json, llm_explanation = process_report(report_path)
+                report_json, llm_explanation = run_pipeline(report_path)
 
                 report_obj.report_json = report_json
                 report_obj.llm_explanation = llm_explanation
